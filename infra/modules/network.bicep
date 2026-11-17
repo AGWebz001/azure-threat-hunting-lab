@@ -10,6 +10,12 @@ param tags object
 @description('Public IP allowed to reach RDP and SSH, in CIDR form (for example 203.0.113.10/32).')
 param adminSourceIp string
 
+@description('Virtual network name.')
+param vnetName string = 'vnet-threat-hunting-lab'
+
+@description('Lab subnet name.')
+param subnetName string = 'snet-lab'
+
 @description('Address space for the lab virtual network.')
 param vnetAddressPrefix string = '10.10.0.0/16'
 
@@ -55,7 +61,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-05-01' = {
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
-  name: 'vnet-threat-hunting-lab'
+  name: vnetName
   location: location
   tags: tags
   properties: {
@@ -66,7 +72,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
     }
     subnets: [
       {
-        name: 'snet-lab'
+        name: subnetName
         properties: {
           addressPrefix: subnetAddressPrefix
           networkSecurityGroup: {

@@ -8,7 +8,8 @@ Bicep templates that build the lab.
 | `main.bicep` | Resource group | Entry point; calls the modules below | Deployed |
 | `modules/network.bicep` | Resource group | Virtual network, subnet, NSG | Deployed |
 | `modules/logging.bicep` | Resource group | Log Analytics workspace, Sentinel | Deployed |
-| `modules/vms.bicep` | Resource group | Windows and Ubuntu VMs, auto-shutdown | Planned |
+| `modules/vms.bicep` | Resource group | Windows and Ubuntu VMs, auto-shutdown | Deployed |
+| `deploy.ps1` | — | Looks up your IP, prompts for the VM password, runs the deployment | — |
 | `modules/monitoring.bicep` | Resource group | Azure Monitor Agent, data collection rules | Planned |
 | `scripts/` | — | Helper scripts (for example Sysmon install) | Planned |
 

@@ -6,7 +6,9 @@ learning, so explain what you are doing and why, not only the final answer.
 ## Fixed choices
 
 - **Infrastructure as code:** Bicep only. No Terraform, no ARM JSON written by hand.
-- **Region:** `eastus`
+- **Regions:** Log Analytics workspace and Sentinel in `eastus`; network and VMs in
+  `northcentralus`. The free-trial subscription cannot use suitable VM sizes in
+  `eastus` (`SkuNotAvailable`), and a VM must share a region with its network.
 - **Resource group:** `rg-threat-hunting-lab` — every lab resource goes in it.
 - **Tags:** every resource gets `project=threat-hunting-lab`.
 - **Shell:** PowerShell on Windows. Python and Node are not installed on this machine.
@@ -30,7 +32,9 @@ learning, so explain what you are doing and why, not only the final answer.
 
 ## Cost
 
-- VM size `Standard_B2s` unless told otherwise; auto-shutdown on every VM.
+- VM sizes: Windows `Standard_B2as_v2`, Linux `Standard_B2als_v2` unless told
+  otherwise (4 vCPUs total, which is the whole free-trial regional quota);
+  auto-shutdown on every VM.
 - Log Analytics: 30-day retention, daily ingestion cap.
 - The subscription is a free trial with a time-limited credit — prefer the cheapest
   option that still teaches the concept, and say so when something will cost money.
