@@ -64,6 +64,22 @@ module vms 'modules/vms.bicep' = {
   ]
 }
 
+// Azure Monitor Agent on both VMs + data collection rules. The DCR lives in the
+// workspace region (location); the agents live with the VMs (computeLocation).
+// Can also be deployed on its own with infra/telemetry.bicep.
+module telemetry 'modules/telemetry.bicep' = {
+  name: 'telemetry'
+  params: {
+    workspaceLocation: location
+    computeLocation: computeLocation
+    tags: tags
+  }
+  dependsOn: [
+    vms
+    logging
+  ]
+}
+
 output vmNames array = vms.outputs.vmNames
 output vnetName string = network.outputs.vnetName
 output workspaceName string = logging.outputs.workspaceName
