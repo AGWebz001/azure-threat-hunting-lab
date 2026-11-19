@@ -10,8 +10,29 @@ Bicep templates that build the lab.
 | `modules/logging.bicep` | Resource group | Log Analytics workspace, Sentinel | Deployed |
 | `modules/vms.bicep` | Resource group | Windows and Ubuntu VMs, auto-shutdown | Deployed |
 | `deploy.ps1` | — | Looks up your IP, prompts for the VM password, runs the deployment | — |
-| `modules/monitoring.bicep` | Resource group | Azure Monitor Agent, data collection rules | Planned |
-| `scripts/` | — | Helper scripts (for example Sysmon install) | Planned |
+| `modules/telemetry.bicep` | Resource group | Azure Monitor Agent on both VMs; DCR for Windows Security events (Common set) and Sysmon | Deployed |
+| `telemetry.bicep` | Resource group | Stand-alone entry for the telemetry layer only (no password or IP needed) | Deployed |
+| `scripts/install-sysmon.ps1` | VM | Installs Sysmon with the SwiftOnSecurity config (pinned commit); run via `az vm run-command` | Run on `vm-win-lab-01` |
+
+## Telemetry
+
+The data collection rule lives in the workspace region (eastus) because a DCR must
+share a region with its Log Analytics destination; the VMs it collects from are in
+northcentralus. Deploy or update just this layer with:
+
+```powershell
+az deployment group what-if --resource-group rg-threat-hunting-lab --name lab-telemetry --template-file infra/telemetry.bicep
+az deployment group create  --resource-group rg-threat-hunting-lab --name lab-telemetry --template-file infra/telemetry.bicep
+```
+
+Install or update Sysmon on the Windows VM (the VM must be running; the script
+runs as SYSTEM and is safe to re-run):
+
+```powershell
+az vm run-command invoke -g rg-threat-hunting-lab -n vm-win-lab-01 --command-id RunPowerShellScript --scripts "@infra/scripts/install-sysmon.ps1"
+```
+
+Sysmon events land in the `Event` table: `Event | where Source == "Microsoft-Windows-Sysmon"`.
 
 ## One-time subscription setup
 

@@ -111,7 +111,7 @@ resource dcrWindowsSecurity 'Microsoft.Insights/dataCollectionRules@2023-03-11' 
   tags: tags
   kind: 'Windows'
   properties: {
-    description: 'Windows Security events (Sentinel Common set) from lab VMs to the lab workspace.'
+    description: 'Windows Security events (Sentinel Common set) and Sysmon from lab VMs to the lab workspace.'
     dataSources: {
       windowsEventLogs: [
         {
@@ -122,6 +122,19 @@ resource dcrWindowsSecurity 'Microsoft.Insights/dataCollectionRules@2023-03-11' 
             'Microsoft-SecurityEvent'
           ]
           xPathQueries: securityXPathQueries
+        }
+        {
+          // Sysmon (installed by infra/scripts/install-sysmon.ps1). Everything in
+          // the channel is collected; the Sysmon config on the VM decides what gets
+          // logged. Microsoft-Event lands in the Event table (Source ==
+          // "Microsoft-Windows-Sysmon"), with the fields packed in EventData XML.
+          name: 'sysmonOperational'
+          streams: [
+            'Microsoft-Event'
+          ]
+          xPathQueries: [
+            'Microsoft-Windows-Sysmon/Operational!*'
+          ]
         }
       ]
     }
@@ -137,6 +150,14 @@ resource dcrWindowsSecurity 'Microsoft.Insights/dataCollectionRules@2023-03-11' 
       {
         streams: [
           'Microsoft-SecurityEvent'
+        ]
+        destinations: [
+          'labWorkspace'
+        ]
+      }
+      {
+        streams: [
+          'Microsoft-Event'
         ]
         destinations: [
           'labWorkspace'
