@@ -5,6 +5,7 @@ Bicep templates that build the lab.
 | File | Scope | Purpose | Status |
 |---|---|---|---|
 | `budget.bicep` | Subscription | Monthly budget with email alerts | Deployed |
+| `activity-log.bicep` | Subscription | Diagnostic setting that streams the Azure Activity log (all categories) to the workspace — what Sentinel's "Azure Activity" connector sets up | Deployed |
 | `main.bicep` | Resource group | Entry point; calls the modules below | Deployed |
 | `modules/network.bicep` | Resource group | Virtual network, subnet, NSG | Deployed |
 | `modules/logging.bicep` | Resource group | Log Analytics workspace, Sentinel | Deployed |
@@ -37,6 +38,15 @@ Sysmon events land in the `Event` table: `Event | where Source == "Microsoft-Win
 Linux `auth` and `authpriv` syslog (SSH logins and failures, sudo, account changes),
 all severities, land in the `Syslog` table via `dcr-linux-syslog`:
 `Syslog | summarize count() by Facility, ProcessName`.
+
+The Azure Activity log (control-plane actions: resource changes, role assignments,
+run-command, policy) lands in the `AzureActivity` table via a subscription
+diagnostic setting:
+
+```powershell
+az deployment sub what-if --location eastus --name lab-activity-log --template-file infra/activity-log.bicep
+az deployment sub create  --location eastus --name lab-activity-log --template-file infra/activity-log.bicep
+```
 
 ## One-time subscription setup
 
