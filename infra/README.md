@@ -10,7 +10,7 @@ Bicep templates that build the lab.
 | `modules/logging.bicep` | Resource group | Log Analytics workspace, Sentinel | Deployed |
 | `modules/vms.bicep` | Resource group | Windows and Ubuntu VMs, auto-shutdown | Deployed |
 | `deploy.ps1` | — | Looks up your IP, prompts for the VM password, runs the deployment | — |
-| `modules/telemetry.bicep` | Resource group | Azure Monitor Agent on both VMs; DCR for Windows Security events (Common set) and Sysmon | Deployed |
+| `modules/telemetry.bicep` | Resource group | Azure Monitor Agent on both VMs; DCR for Windows Security events (Common set) and Sysmon; DCR for Linux auth/authpriv syslog | Deployed |
 | `telemetry.bicep` | Resource group | Stand-alone entry for the telemetry layer only (no password or IP needed) | Deployed |
 | `scripts/install-sysmon.ps1` | VM | Installs Sysmon with the SwiftOnSecurity config (pinned commit); run via `az vm run-command` | Run on `vm-win-lab-01` |
 
@@ -33,6 +33,10 @@ az vm run-command invoke -g rg-threat-hunting-lab -n vm-win-lab-01 --command-id 
 ```
 
 Sysmon events land in the `Event` table: `Event | where Source == "Microsoft-Windows-Sysmon"`.
+
+Linux `auth` and `authpriv` syslog (SSH logins and failures, sudo, account changes),
+all severities, land in the `Syslog` table via `dcr-linux-syslog`:
+`Syslog | summarize count() by Facility, ProcessName`.
 
 ## One-time subscription setup
 

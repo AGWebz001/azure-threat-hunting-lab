@@ -58,8 +58,7 @@ resource amaWindows 'Microsoft.Compute/virtualMachines/extensions@2024-07-01' = 
   }
 }
 
-// Installed now so the Linux VM is ready; it has no DCR until step 4.3 (syslog),
-// so it sends nothing yet.
+// Linux agent; what it collects comes from dcr-linux-syslog below.
 resource amaLinux 'Microsoft.Compute/virtualMachines/extensions@2024-07-01' = {
   parent: linuxVm
   name: 'AzureMonitorLinuxAgent'
@@ -180,4 +179,78 @@ resource dcrAssociationWindows 'Microsoft.Insights/dataCollectionRuleAssociation
   ]
 }
 
+// ---------------------------------------------------------------------------
+// Data collection rule: Linux syslog (auth + authpriv)
+// ---------------------------------------------------------------------------
+//
+// auth and authpriv carry the security story of a Linux box: SSH logins and
+// failures (sshd), sudo and su use, and account changes (useradd, passwd,
+// usermod). All severities are collected because a failed login is logged at
+// info/notice, not at error. Lands in the Syslog table.
+
+resource dcrLinuxSyslog 'Microsoft.Insights/dataCollectionRules@2023-03-11' = {
+  name: 'dcr-linux-syslog'
+  location: workspaceLocation
+  tags: tags
+  kind: 'Linux'
+  properties: {
+    description: 'Linux auth and authpriv syslog from lab VMs to the lab workspace.'
+    dataSources: {
+      syslog: [
+        {
+          name: 'syslogAuth'
+          streams: [
+            'Microsoft-Syslog'
+          ]
+          facilityNames: [
+            'auth'
+            'authpriv'
+          ]
+          logLevels: [
+            'Debug'
+            'Info'
+            'Notice'
+            'Warning'
+            'Error'
+            'Critical'
+            'Alert'
+            'Emergency'
+          ]
+        }
+      ]
+    }
+    destinations: {
+      logAnalytics: [
+        {
+          name: 'labWorkspace'
+          workspaceResourceId: workspace.id
+        }
+      ]
+    }
+    dataFlows: [
+      {
+        streams: [
+          'Microsoft-Syslog'
+        ]
+        destinations: [
+          'labWorkspace'
+        ]
+      }
+    ]
+  }
+}
+
+resource dcrAssociationLinux 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = {
+  scope: linuxVm
+  name: 'dcra-linux-syslog'
+  properties: {
+    description: 'Send auth/authpriv syslog from the Linux lab VM.'
+    dataCollectionRuleId: dcrLinuxSyslog.id
+  }
+  dependsOn: [
+    amaLinux
+  ]
+}
+
 output dcrName string = dcrWindowsSecurity.name
+output linuxDcrName string = dcrLinuxSyslog.name
